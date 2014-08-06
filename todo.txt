@@ -1,0 +1,348 @@
+Critical things bothering me the most
+----------------------------
+[ ] Formalize how an output type changes based on its input - right now I guess which input may be affecting the output in dag.nodeOutputType().
+[ ] Datapackets may need to write a single descriptor file to accompany a range.  Allow for a single file in data packets (needed now that ranges are locked)
+    (oooh, i wonder if all I have to do here is not supply a #?)
+[ ] Are nodes allowed multiple outputs?  Jury's still out.
+( ) MAKE SINGLE-OUTPUT DATAPACKET A REQUIREMENT FOR ALL NODES!
+      If not, stop freaking out about which output is connected to the input and get on with your bad self.  What made me think there were multiple outputs anyway?
+	  Connecting multiple outputs really never causes a problem.  Think it through and draw it out.
+
+[ ] The loading, execution, and management is very tightly coupled with the UI.  An example is the fact that running command-line
+    still needs to create the UI, just not show it.  It would be nice if I could divorce these things a lot more than I already am.
+[ ] Nodes should have variable output types since some commandline apps let you switch the output based on what you feed it.  
+    These are likely best selected explicitly through a dropdown box.
+	*OR* we could just make them create multiple nodes.  I kinda' like this one better :-).
+[ ] Finish my own framespec.
+    [X] replaceFrameSymbols() - finish it
+    [ ] sequenceSpec
+[?] When entering the name of a "result", the frame numbers MUST *somehow* be automatically filled in - especially when they're generated dynamically (lightprobe reduce).
+      Potentially looking for magic symbols and adding frame numbers to them.
+      Or maybe the extension/frame number isn't user editable?  Just path and filename (basename, I believe?)
+      Or maybe a framespec symbol is enough, and it just looks for all files that match.
+
+
+Core
+------
+(Theory)
+[ ] Make the node writer happier - A better way for executeList() functions in node to get their input and output framespecs.
+[ ] Node and datapacket typestring comes from the class name?  Make explicit.
+[ ] Does anyone check the 'required' status of a node's input?  Sanity section of main_window, maybe?
+[ ] MainWindow "how inclusive the values dict is" - figure out a good way to solve this issue.
+[ ] Changing an operation's attributes should likely mark itself as stale as well as its children
+    but not for input nodes.
+
+[ ] When executing on a network, certain tasks may need to be flagged *ALWAYS RUN* since they may do things like set environment variables...
+[ ] In save files, should all the state data be at the root, or is adding meta into the DAG dict entry a logical thing to do?
+    (In other words, re-evaluate the say I'm doing file saving)
+[ ] Node.ScenegraphHandle might be best operating on individual outputs?  Or it should just take some known list to handle inheritance (dag.py line 309).
+[ ] Each workflow should have some sort of notes meta stored with it!
+[ ] What if our datapacket definitions change?
+[ ]   Version workflow files to make sure we can load the right stuff.
+[ ]   Try to insure backwards compatibility?
+[ ] What kind of interesting information can I automatically gather and display from a node?  Is a handmade version # reasonable per-node?
+[ ] Properties?  Attributes?  Which one should I go with?  Or wait; is there confusion or no?
+[ ] The Maya interactive node should likely have a variable number of inputs available to it.  Make this possible someday.
+[ ] Are there places besides the node properties that variable substitution is interesting?
+[ ] A static set of variables for the program is limiting.  We should be able to swap variable sets in and out of the execution state.
+[ ] It's possible the DAG class shouldn't know anything about the scenegraph / datapackets.  Right now a couple of functions do...
+[ ] What if an asset points to a file that needs to be opened and parsed (a pod file)?  Should another callback exist or something?
+[ ] Maybe too complex - how can we split sequences out into sub-sequences (half of the images get one transform, half don't)?  Should we?
+	It could be done with input ranges...
+[ ] I wonder if we should be able to run arbitrary python code everywhere?
+    (instead of just $$HOME, we can do os.environ[HOME])
+
+(Execution, Validation, etc)
+[ ] Include range changes in the execution engine machinations
+[ ] Substitution doesn't appear to be happening on range value variables
+
+(Practical)
+[ ] Re-introduce data packet exporting.
+[ ] Fill in validate functions for example nodes.
+
+[ ] What does one do when a embarassingly parallel node takes in 10 frames and tries to output 100?
+    (Right now, we error)
+[ ] There's gotta' be a bug with setting sequence ranges and their string values vs int values...
+    The only time they should be ints is when using them.  It seems to be happening earlier.
+[ ] Add range extents to the variable substitution detector (dagNodesVariablesUsed)
+[ ] When loading, validate all UUIDs make sense (are there ignores that don't exist anywhere?)
+[ ] Undo for grouping
+[ ] Undo for variable values
+[ ] Add the checks and warnings for when loading a workflow that doesn't share the same NODE_PATH as the current environment.
+[ ] Clamp input ranges to the limits of the datapacket in the execution engine.
+[ ] A Dag function that comes up with a unique name for a node
+[ ] Finish maya side of Maya bridge for point cloud.
+[X]   For node creation.
+[ ]   For attribute editing (which will only register their undo when the cursor leaves the text edit, since the local undo is already handled by the widget).
+	  (I tried making this work once and it was really flakey.  I wonder what I was doing wrong?)
+[ ] Ranges should be start, end, *span*!
+[ ] A coalesce node that combines two sequences into one, using symlinks.
+	Symlinks on disk seems to be the best way to merge things.
+[ ] DataPacketTypesAccepted function for subdags
+[ ] Hook Inputs/Outputs/Attributes up to "framespec" elsewhere besides just the data_packet.
+[ ] We could use a command-line tool that counts output frames and sets environment variables.
+[ ] How do we save SubDags?
+[ ] Enhance execution recipes to handle SubDags, taskgroups, etc.
+[ ] Namespace conflicts can occur if the user sets up a plugin that is juuuuuust right (or wrong).  Protect.
+[ ] Create additional recipe plugins.
+	[ ]   One for batcho execution
+	[X]   One for local execution
+	[ ]   One for condor execution
+[ ] Finish creating an auto-read-node factory function for exe.  Might not be needed though.
+[ ] How do we overlay results from SFM over what was read from the Camera Image Sequence?
+
+
+UI
+----
+(Critical)
+[ ] UI to enable pre- and posthooks.
+[ ] Fix segfault when dealing with an expanded attribute editor and undo/redo.
+
+(Important)
+[ ] Now that outputs have unified sequences, the UI is a little hokey.  Fix it up.
+[ ] What if a node takes multiple data packets of the same type?  They need to know their order / UI needs to help.
+[ ] Let the user specify where they want to write the script file
+[ ] Status bar to report goings-on on something other than the commandline
+[ ] SubDag UI rollout/rollin, etc.
+[X] Reload plugins should:
+[X]   Save a temp file
+[X]   Reload that file
+[X]   Change the associated filename to be the original file (file meta)
+[ ]   Mark it as modified if the original was (Unsure how to do this with the QUndoStack, as it's super-finnicky!)
+[ ] File dialogs that handle ranges.
+[ ] Group box adjustments (live and/or manual)
+
+(Cool)
+---
+
+[ ] Store and load the 'camera location'
+[ ] A separate camera undo stack
+[ ] Changing things in the DAG often affects other things.  A visual flash stating what's happened would be nice (uses dagSnapshotDiff).
+    FlashNodes() with a list of nodes should spawn a decay timer for a glow or something.
+[ ] Store and load the communication port.
+[ ] Handle the cyclic DAG warning in some UI-friendly way.
+[ ] A class "parent()" scrubbing to insure that QT widgets can work their way up to where they would really like to go.
+[ ] UI - grey 'delete nodes' out when nothing is selected
+[ ] Jam a node onto an edge by hoovering and releasing.
+[ ] Standardize the mouseover events in mainwindow and their handling of passing in a None.
+    (I tried to do this, but the scenegraph widget was holding onto its last highlighted node like the dickens)
+[ ] Auto-capitalize environment variables when entered
+[ ] If variable already exists, clear variable entry field or add a 1 or something?
+[ ] A tab menu that lets you fuzzy-find the node you want to create.
+[ ] Scenegraph display shows which nodes are and aren't turned on for a given node (only for selected items ATM).
+[ ] Maybe always showing 'can-be-executed-as-they-are' nodes is a little much all the time.  Modifier?
+[ ] A hotkey in the DAG that greys out everything a node doesn't use (recursively and otherwise)
+[ ] When creating DAG groups, the edge horizontal offsets are sloppily (horizontally) located, fix.
+[ ] Recover edge's horizontal-offsets when ungrouping SubDags.
+[ ] Datapacket read nodes only have outputs, so coloring them "ready to execute" might be a little weird.  Maybe.
+[ ] If we do lock outputs' sequences together, outputs only need one range setter in the UI.
+[ ] Color different node types differently in DAG display.
+[ ] Icons next to the datapacket types in the scene graph (generate them from real data?).
+[ ] It's possible the property widget should be constructed differently so the timer in MainWindow's select isn't needed anymore.  Maybe.
+[X] Input widget that:
+[X]   lets you see which node it refers to
+[X]   draws reasonable, editable text
+[X]   allows dropping
+[X]   blocks unwanted drops
+[ ]   and maybe offers a dag dialog in case you don't wanna' drag'n'drop
+[?] Sometimes a node needs more than 1 packet to be considered good to go.  Right now we just need one...
+[?] There are lots of drawer updates that should be hooked up (making and breaking connections with the property widget)
+
+
+-----------------------------------------------------------------------------------------------------------------------
+
+
+Critical Completed
+------------------
+[X] Are datapackets allowed multiple sequence ranges, or is the data in them *always* locked together?
+(X) LOCK OUTPUT FRAME RANGES TOGETHER!
+	  One can imagine a datapacket with a file describing stuff and a sequence to accompany it.
+	  But this would make data validation and passing difficult.
+	  Probably just allow single files + locked ranges - not various ranges...
+	  Maybe telling some properties that they *cannot* be a range would be a good thing?
+[X] Some sort of central evaluation engine needs to be created that takes events handles everything that happens with each event.
+	[X]   Tie this evaluation engine to the to the visual side of things, and obviously the undo stack.
+	[X]   Store entire snapshots of the DAG in a reasonable way.  JSON buffers?
+	[X]   If it is JSON buffers, generalize their loading and saving.
+[X] Implement affect on multithreading "task groups".
+      Seems like we're talking about serial execution (walk through lists of nodes) versus parallel (do one step first, then the second, etc)
+[X] Core functionality
+[X]   Node: inputs(), outputs(), attrs()
+[X]   Dag: given a node's input, which node & node output does it come from (nodeInputComesFromNode)
+[X]   Dag: given a node's output, which nodes & node inputs does it go to (nodeOutputGoesTo)
+[X]   Dag: given a node's input, return the datapacket it currently has coming in (?)
+[X]   Dag: given a node's output, return the datapacket it currently has going out (?)
+[X] A reasonable way to know what node and what output are connected to an input, damnit :-).
+
+
+Core Completed
+--------------
+[X] dagNodeVariablesUsed doesn't check ranges now.  Fix.
+[X] Add undo for range changes
+[X] Input edits don't pass their modifications down through the dag properly (propertyEdited() gets old and new the same).  Oh boy.
+[X] Fix up stale tracking in mainWindow.  ("Stale refers to a node's data on-disk")
+[X] Make sure the pre & post hooks actually do something somewhere.
+[X] What is going on with undo in the output fields?  (it was a deepcopy issue)
+[X] A dag-fitness/sanity sub-system.
+[X] Commandline specifier for output recipe type.
+[X] Group boxes *must* be serializable with the rest of everything
+[~] Custom file dialogs are specified by name.  Should this be by object?
+[X]   A commandline argument is confirmed capable of taking spaces (with ''s and \ s) and that may be good enough
+[X] AttrEdit is used for too many things - there should be a 'TextEdit' class and an 'AttrEdit' class that takes the same thing Input|OutputEdit does
+    (This is to make switching the file dialog on a per-attribute edit easier.)
+[X] Good default recipe setting.
+[X] Make the file browser widget pluggable.
+[X] Make it possible to specify which inputs are standard file dialogs and which are plugin-specific.
+[X] Create the output recipe plugin architecture.
+[~] "For loop" node  (obsolesced by commandline runnability)
+[X] A snapshot diff tool that lets one quickly see what has changed between undos.
+[X] How do we version major workflow files?  
+[?]   Similarly, how do we make historic versioning and progressive modifications easy to handle?
+[X] Nodes should have their own validate function to insure attributes get checked properly.
+[X] Write an auto-generated node validate for the auto-generated read-nodes.
+[~] Make the variable architecture facilitate wedging by introducing ranges to the soft.
+[X] Propagate the range changes all the way down the DAG!
+[X] MainWindow.propertyEdited() disconnects inputs that change out from under the nodes, but does it cascade properly?
+[X] Every change has multiple effects that should be catalogued and likely all applied at once.  This may reduce evaluation redundancy.
+    In other words, a core execution engine of some sort that can keep track of what is affected, etc.
+[X] Verify commandline running works.
+[X] A specific "output" node should be specifiable - so command-line running is simple.
+[X] Undo/Redo.
+[X] Save/load stale list
+[X] Attribute descriptions somewhere in the Node to be shown as tooltips.
+[X]   Finish it for the Inputs
+[X]   Finish it for the Attributes
+[X]   Finish it for the Outputs
+[X] Come up with a clean way for the user to code and incorporate nodes - place to put them, etc.
+[X] Dirty bit for dag modification.
+[X] Allow the user to reload all plugin modules while working.  This is huge, as otherwise restarting the software 
+    while developing nodes will be a deal-breaker.
+[X] Get DataPackets in on the plugin fun.
+[X] Pull out the nodes defined in node.py right now (except for coalesce and mayaIO)
+[~] We might need some sort of guard when loading plugins.  Maybe.  
+    (How?  Make a local function that imports the modules and looks for a key - if the key isn't there, take it off the list of plugins)
+	I've skipped this idea since our code searches for classes inherited by a certain type.  I did, however, add a try|except to make sure
+	we don't go off into the weeds on plugins that error upon load.
+[X] Track down why an undo-with-re-selection is so darn slow & fix it when undo'ing attributes
+[X] Finalize environment variables for plugin loading.
+[X] Pull example nodes out after formalizing plugin system.
+[X] Auto-filling output frame ranges on connect would be cool (but would require inputs being associated with outputs!).
+[~] Should I automatically generate DataPackets' attribute dictionary from the outputs on nodes?
+    NO.  They are separate.
+[X] Input ranges should modify the data_packets before they get into the node's executeList.
+    I believe this to be a good idea since the user may forget to take care of it on their own in executeList,
+	but it could, instead, be done in a parent's executeList.  Maybe.
+[X] I'm not sure I like the way datapackets handle their range.  Tuples?  Something more explicit is likely better.
+    Dude, datapackets should just hold framespec/framerange objects!
+[X] DataPackets make sure their file counts are the same for ranges.  Maybe they should uniformly report the framerange with a function too.
+[X] Datapackets should get a range now too.
+[X] Inputs, attributes, and outputs need a start/end tuple.
+[X] All nodes get a posthook (and a prehook?)!
+[X] An input in the property_dialog holds onto an input and displays information about it.  No text parsing necessary.
+	This will let it show the abbreviated connection information in its text field & works because it's read-only.
+	Writing to disk will require a tiny adjustment.
+[X] Convert variable substition code to regex and don't iterate over all variables!
+[X] Variable substitution can pull from environment variables with a $$
+[X] Check lengths of sequences in the data_packet as well (additional validation).
+[X] All parameters can be variables - like in POD files!
+[X] No more XML
+[X] Node attributes need a parameter that says if they're a filetype
+	- This means that the current dict / string relationship needs to get a little more complex (with an attribute type being introduced)
+	- Should Outputs have their own type, or can they continue to live on as simply attributes with the filetype flag always set?
+[X] Node inputs should be an object so I can set lots of parameters (like file dialog button necessary, etc)
+[?] inputs() and outputs() should probably return a dictionary instead of a list of tuples.
+[.] Expose lists for what they are in the parameters - I've removed lists for now, but revisit if needed.
+[.] Handle outputs that don't specify the range explicitly, but do have framespec-like symbols.
+[X] If a specialized output type changes, nodes downstream from that one that are using it (and can't use the new type) should lose their inputs.
+    eg.  in foo4.xml, change Tweak_Their_Color's input to the image instead of the lightprobe - "RealReduce" should lose its input.
+[X] If you disconnect a node from the chain, its input should go away for the nodes that rely on it.
+[X]   Compute all downstream nodes from a function in the dag.
+[X] Changing an input file way upstream should, at the very least, let people know which fields downstream are "stale".
+[X] Passing a lightprobe into an ImageTransform node converts the results into an Image data packet.  
+	  Should I try to preserve things I know about?  Scenegraphhandle will have to get a list of dataPackets to check against if so.
+	  Seems pretty necessary since sceneGraphHandle in DagNodeImageTransform will pass transforms on if it sees an incoming Lightprobe & not for an incoming image.
+[X]   I've implemented this, but it's a hack right now - finalize.
+[X] Convert the %, @, and # check in data packet into framespec talk.
+[X] If ImageTransform can take either lightprobes or images, it should be able to save either/or as well.  
+    Investigate how this flows through the system.  I think the datapacket that it returns is dynamic, so we're okay.
+    Or maybe just merge in a transform with a different node.
+[X] Fix display of nodes at the top of the hierarchy when doing light/dark drawing.  This really needs a function...
+[X] Very likely need a dataPacketsRequired function in DagNode to cross check against dataPacketsAccepted when validating.
+[X] DataPacketTypesAccepted in the core can migrate down to the	inputRequirementsFulfilled section and that can live in the parent class.
+[X] Inheritance in the datapackets (lightprobes are subsets of images, etc).  Which contexts does this help in again?
+[X] Dag functions 'connectionsIn/Out' doesn't need to return full edge objects - just nodes, methinks
+[X] SubDags for nodes.
+[X] Ungroup SubDags!
+[X] A read node doesn't generate data the same way as a different node, so its' "validity" is different in the execution engine. (is this still relevant?)
+[X] Standardize plural vs non with nodes, datapackets, etc!
+[X] Should a datapacket even be able to store multiple things, or is a single field good enough (sequences specified in there, etc)?
+[X] Should DagNodes have 'checkAttributeRequirements' functions, or will we leave that to the DataPackets?
+[X] If a filename attribute (all of them are?) is a sequence, how do we specify the beginning and end?
+[X] Nodes need a way to determine if they have everything they need to execute.
+[X] A DAG function that quickly tells me which inherited class a node is outputting.
+[X] Can the dataPresent() function in data_packet be moved into the parent class?  News at 10.
+[X] Create Image (sequence) read node.
+[X] Create Laser Scan read node.
+[X] Create SFM operation node.
+[X] Add auto-read-node generation from datapackets
+
+
+UI completed
+------------
+[X] A neutral color is better for the nodes.
+[X] Come up with an easy way to 'version up' all the filenames/assets in a node (likely one that has been generated already).
+[X] Touching a node's outputs should clear its stale status!
+[X] Finish duplicate node
+[X] Some sort of cascading dependency view - a color that gets dimmer or outlines that do the same?  Or something.
+[X] The UI to select different output recipes.
+[~] The variable widget needs a checkbox for saying with certainty which variables are actually ranges (made obsolete by removing ranges from variables)
+[X] Commandline script file writing naming.
+[X] Commandline variable setting
+[X] It'd be cool to "shake" a node out of the tree (but maybe a 'backspace' key would be better for now).
+[X] A menubar menu that lets you create nodes - not just the context menu stuff.
+[X] Undo'ing in the property widget needs to work 100%.
+[X] Fix the entire application rebuilding itself when selecting multiple nodes at the same time.
+[X] Select multiple nodes with CTRL, SHIFT, etc.
+[X] Display attribute descriptions on mouse hover (tooltips).
+[X] Tie into the "dirty" status of the undo stack.
+[X] Window settings and geometry save/load.
+[X] Why is my blue background color gone in my scenegraph?
+[X] A dot node would be pretty groovy!
+[X] At least create an interface for figuring out which output corresponds to a given input.
+[X] Variable substitution UI.
+[X] The Property Dialog needs a scrollbar so edits don't get mashed out of existence.
+[X] Refreshing the property widget needs to update the output's labels and fields!
+[X] Stale, blue light.
+[X] Property view needs a refresh function as well as a rebuild so we can update things like inputs when lines are disconnected
+[X] When a specialization transform occurs (on eg. an output named ImageTypes), I'd like to know what it's been specialized to.
+[X] File browser dialog for properties.
+[X] Connecting graph nodes needs to refresh certain downstream dependency locations live in the scenegraph view.
+[X] Don't let multiple edges come out of the same nub into the same destination node!
+[X] Dropping connections onto large nodes doesn't seem to work outside the core (small) size.  Fix.
+[X] Show which DAG node a scenegraph item comes from (on mouseover).
+[X] Scenegraph display allows you to figure out which nodes are which in the DAG.
+[X] Add lights to nodes in DAG display showing if their result data is on disk and/or if the data is stale.
+[X] Show nodes in the UI that can be executed as they are, and nodes that don't have the necessary input data present.
+[X] Datatypes that a node doesn't accept should be greyed out in the scenegraph.
+[X] Clicking checkboxes should redraw the DAG.
+[X] Tie the scenegraph mouseover to the property widget as well - and vice-versa
+[X] (Rollout) UI to show start/end frames.
+[X] (Rollout) UI to show "disconnect input" button.
+[X] Anything that changes the makeup of the DAG needs to store the entire dag in its undo stack.
+
+
+Slides TODO:
+------------
+[ ] Wedging has been turned into variable substitution on the commandline.  Make a note of it!
+
+
+Things we do that shell scripts don't
+-------------------------------------
+* Strict typing.
+* Pre-flight checks.
+* Easy versioning.
+* Stale tracking.
+* Range insurance.
+* Can always leave the static typing behind (an ABC datapacket, for example).
+* Groups of files roll up into single types.
+* plaintext project files allow easy editing.
