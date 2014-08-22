@@ -29,98 +29,98 @@ class MultipleOption(optparse.Option):
             values.ensure_value(dest, []).append(value)
         else:
             optparse.Option.take_action(self, action, dest, opt, value, values, parser)
-	
+    
 
 ###############################################################################
 ## Main starts here...
 ###############################################################################
 if __name__ == "__main__":
 
-	# The optparse module eats all the arguments so we back them up and restore 
-	# them after optparse is done with them.  *grumble*
-	fullArgvList = copy.deepcopy(sys.argv)
+    # The optparse module eats all the arguments so we back them up and restore 
+    # them after optparse is done with them.  *grumble*
+    fullArgvList = copy.deepcopy(sys.argv)
 
-	# To maintain consistency with the way QT parses arguments (single dashes in
-	# front of "long" arguments), we run a pre-process to replace each single-dash 
-	# with a double-dash.  Double-dash arguments still work as well.
-	for i in range(len(sys.argv)):
-		arg = sys.argv[i]
-		if arg[0] == '-' and len(arg) > 1 and arg[1] != '-':
-			arg = '-' + arg
-		sys.argv[i] = arg
+    # To maintain consistency with the way QT parses arguments (single dashes in
+    # front of "long" arguments), we run a pre-process to replace each single-dash 
+    # with a double-dash.  Double-dash arguments still work as well.
+    for i in range(len(sys.argv)):
+        arg = sys.argv[i]
+        if arg[0] == '-' and len(arg) > 1 and arg[1] != '-':
+            arg = '-' + arg
+        sys.argv[i] = arg
 
-	parser = optparse.OptionParser(option_class=MultipleOption)
-	parser.add_option('--workflow', action='store', type='string', dest='workflow', help='A file to load upon startup')
-	parser.add_option('--nogui', action='store_true', dest='nogui', help='Do not open the Depends gui for this session', default=False)
-	parser.add_option('--node', action='store', dest='node', help='Node to execute (only works in conjunction with -nogui)')
-	parser.add_option('--style', action='store', dest='stylesheet', help='Load a CSS stylesheet for this session', default='./darkorange.stylesheet')
-	parser.add_option('--vsub', action='extend', dest='vsub', help='Specify variables and values (VAR=VALUE) to insert into the workflow')
-	parser.add_option('--evalpath', action='store', dest='evalpath', help='Specify the destination filename or path for the execution script')
-	parser.add_option('--recipe', action='store', dest='recipe', help='Specify the execution recipe by name')
-	(options, sys.argv) = parser.parse_args()
-	sys.argv = fullArgvList
+    parser = optparse.OptionParser(option_class=MultipleOption)
+    parser.add_option('--workflow', action='store', type='string', dest='workflow', help='A file to load upon startup')
+    parser.add_option('--nogui', action='store_true', dest='nogui', help='Do not open the Depends gui for this session', default=False)
+    parser.add_option('--node', action='store', dest='node', help='Node to execute (only works in conjunction with -nogui)')
+    parser.add_option('--style', action='store', dest='stylesheet', help='Load a CSS stylesheet for this session', default='./darkorange.stylesheet')
+    parser.add_option('--vsub', action='extend', dest='vsub', help='Specify variables and values (VAR=VALUE) to insert into the workflow')
+    parser.add_option('--evalpath', action='store', dest='evalpath', help='Specify the destination filename or path for the execution script')
+    parser.add_option('--recipe', action='store', dest='recipe', help='Specify the execution recipe by name')
+    (options, sys.argv) = parser.parse_args()
+    sys.argv = fullArgvList
 
-	#
-	# Create the application
-	#
-	app = QtGui.QApplication(sys.argv)
+    #
+    # Create the application
+    #
+    app = QtGui.QApplication(sys.argv)
 
-	# Apply a stylesheet
-	qss = QtCore.QFile(options.stylesheet)
-	qss.open(QtCore.QFile.ReadOnly)
-	app.setStyleSheet(str(qss.readAll()))
-	qss.close()
+    # Apply a stylesheet
+    qss = QtCore.QFile(options.stylesheet)
+    qss.open(QtCore.QFile.ReadOnly)
+    app.setStyleSheet(str(qss.readAll()))
+    qss.close()
 
-	#
-	# Gui (default): Construct the MainWindow and run it.
-	#
-	startFile = options.workflow
-	if startFile is None:
-		startFile = ""
-	mainWindow = depends_main_window.MainWindow(startFile=startFile)
+    #
+    # Gui (default): Construct the MainWindow and run it.
+    #
+    startFile = options.workflow
+    if startFile is None:
+        startFile = ""
+    mainWindow = depends_main_window.MainWindow(startFile=startFile)
 
-	# Do some variable substitutions based on the vsub argument(s)
-	if options.vsub:
-		for varSub in options.vsub:
-			split = varSub.split('=')
-			variable = split[0]
-			newValue = split[1]
-			if variable in depends_variables.names():
-				depends_variables.setx(variable, newValue)
-			else:
-				print "Warning: Variable %s specified in 'vsub' argument does not exist in this workflow." % variable
-		mainWindow.variableWidget.rebuild(depends_variables.variableSubstitutions)
+    # Do some variable substitutions based on the vsub argument(s)
+    if options.vsub:
+        for varSub in options.vsub:
+            split = varSub.split('=')
+            variable = split[0]
+            newValue = split[1]
+            if variable in depends_variables.names():
+                depends_variables.setx(variable, newValue)
+            else:
+                print "Warning: Variable %s specified in 'vsub' argument does not exist in this workflow." % variable
+        mainWindow.variableWidget.rebuild(depends_variables.variableSubstitutions)
 
-	# "Check" the requested recipe in the MainWindow UI.
-	if options.recipe:
-		mainWindow.setActiveOutputRecipe(options.recipe)
+    # "Check" the requested recipe in the MainWindow UI.
+    if options.recipe:
+        mainWindow.setActiveOutputRecipe(options.recipe)
 
-	# Show the UI
-	if not options.nogui:
-		mainWindow.show()
-		sys.exit(app.exec_())
+    # Show the UI
+    if not options.nogui:
+        mainWindow.show()
+        sys.exit(app.exec_())
 
 
-	#
-	# Commandline-only: Execute the requested node.
-	#
-	# Insure the user loaded a file properly
-	if mainWindow.windowTitle() == 'Depends':
-		print "File %s was not successfully loaded" % options.workflow
-		sys.exit(1)
-	
-	# Insure the user specified a node
-	if not options.node:
-		print "Please specify a node to execute with the -node argument."
-		sys.exit(2)
-	nodeToExecute = mainWindow.dag.node(name=options.node)
-	if not nodeToExecute:
-		print "Node '%s' was not found in the Dag" % options.node
-	
-	# The recipe often writes a temporary eval file to '/tmp', but it can be specified on the commandline if desired
-	evalPath = '/tmp'
-	if options.evalpath:
-		evalPath = options.evalpath
+    #
+    # Commandline-only: Execute the requested node.
+    #
+    # Insure the user loaded a file properly
+    if mainWindow.windowTitle() == 'Depends':
+        print "File %s was not successfully loaded" % options.workflow
+        sys.exit(1)
+    
+    # Insure the user specified a node
+    if not options.node:
+        print "Please specify a node to execute with the -node argument."
+        sys.exit(2)
+    nodeToExecute = mainWindow.dag.node(name=options.node)
+    if not nodeToExecute:
+        print "Node '%s' was not found in the Dag" % options.node
+    
+    # The recipe often writes a temporary eval file to '/tmp', but it can be specified on the commandline if desired
+    evalPath = '/tmp'
+    if options.evalpath:
+        evalPath = options.evalpath
 
-	# Execute
-	mainWindow.dagExecuteNode(nodeToExecute, evalPath, executeImmediately=True)
+    # Execute
+    mainWindow.dagExecuteNode(nodeToExecute, evalPath, executeImmediately=True)

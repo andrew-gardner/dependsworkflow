@@ -18,18 +18,18 @@ It runs a standard QT file dialog that lets the user choose their file.
 ################################################################################
 ################################################################################
 class QtFileDialog(depends_file_dialog.FileDialog):
-	"""
-	"""
-	def __init__(self):
-		depends_file_dialog.FileDialog.__init__(self)
+    """
+    """
+    def __init__(self):
+        depends_file_dialog.FileDialog.__init__(self)
 
 
-	def name(self):
-		return "Standard Qt File Dialog"
+    def name(self):
+        return "Standard Qt File Dialog"
 
 
-	def browse(self):
-		"""
-		Open a Qt file dialog and return the chosen file (or None).
-		"""
-		return QtGui.QFileDialog.getOpenFileName()[0]
+    def browse(self):
+        """
+        Open a Qt file dialog and return the chosen file (or None).
+        """
+        return QtGui.QFileDialog.getOpenFileName()[0]
