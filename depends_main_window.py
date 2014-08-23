@@ -451,7 +451,7 @@ class MainWindow(QtGui.QMainWindow):
         self.undoStack.push(depends_undo_commands.DagAndSceneUndoCommand(preSnap, currentSnap, self.dag, self.graphicsScene))
 
         # Updates the drawNodes for each of the affected dagNodes
-                self.propWidget.refresh()
+        self.propWidget.refresh()
         self.graphicsScene.refreshDrawNodes(nodesAffected)
 
 
