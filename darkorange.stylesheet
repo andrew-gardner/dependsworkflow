@@ -15,7 +15,7 @@ QToolTip
 
 QMainWindow
 {
-	background-color: #323232;
+    background-color: #323232;
 }
 
 QWidget
@@ -171,7 +171,7 @@ QComboBox::down-arrow
 
 QGroupBox:focus
 {
-	border: 2px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
+    border: 2px solid QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffa02f, stop: 1 #d7801a);
 }
 
 QTextEdit:focus
@@ -296,7 +296,7 @@ QHeaderView::section
 
 QCheckBox:disabled
 {
-	color: #414141;
+    color: #414141;
 }
 
 QDockWidget::title
@@ -398,7 +398,7 @@ QTabBar::tab:last
 
 QTabBar::tab:first:!selected
 {
-	margin-left: 0px; /* the last selected tab has nothing to overlap with on the right */
+    margin-left: 0px; /* the last selected tab has nothing to overlap with on the right */
     border-top-left-radius: 3px;
 }
 
