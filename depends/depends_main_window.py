@@ -159,6 +159,7 @@ class MainWindow(QtGui.QMainWindow):
             if firstRecipeAction:
                 recipeAction.setChecked(True)
                 firstRecipeAction = False
+        self.setActiveOutputRecipe("Bash Output Recipe")
 
         # External communications
         self.comms = depends_communications.BidirectionalCommunicationObject(6001)    # TODO: Configuration file.
